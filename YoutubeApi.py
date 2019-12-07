@@ -28,7 +28,8 @@ def youtube_search(query):
       q=query,
       part="id,snippet",
       maxResults=50,
-      pageToken=page_token
+      pageToken=page_token,
+      order='date'
     ).execute()
 
     videos = []
@@ -57,6 +58,7 @@ def youtube_search(query):
 
   # print("Videos:\n", "\n".join(videos), "\n")
 
+  print('# ids: ', len(ids))
 
 if __name__ == "__main__":
   youtube_search("장씨세가 호위무사")

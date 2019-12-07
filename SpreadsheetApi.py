@@ -13,46 +13,13 @@ from functional import seq
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
-SAMPLE_SPREADSHEET_ID = '1l9p_UpqsAU3ByqDIm4koHnRSVnB2eHZBJkPwIsWmwuo'
-SAMPLE_RANGE_NAME = 'query!A:A'
+SPREADSHEET_ID = '1-emqPYfy4mQV0Tuc7T_EvcVOUdmmWm83owMnNXg4xUY'
+QUERY_RANGE_NAME = 'query!A:A'
 
-
-def get_sheet_titles(spreadsheet_resource):
-  spreadsheet_meta = spreadsheet_resource.get(spreadsheetId=SAMPLE_SPREADSHEET_ID).execute()
-  sheets_seq = seq(spreadsheet_meta['sheets'])
-  return sheets_seq.map(lambda d: d['properties']['title']).to_list()
-
-
-def read_queries(spreadsheets_meta):
-  result = spreadsheets_meta.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                          range=SAMPLE_RANGE_NAME).execute()
-  values = result.get('values', [])
-
-  if values is None:
-    return []
-
-  return seq(values).flat_map(lambda x: x).to_list()
-
-
-def add_sheet(spreadsheets_meta, sheet_name):
-  update_body = {
-    'requests': [
-      {
-        'addSheet': {
-          'properties': {
-            'title': sheet_name
-          }
-        }
-      }
-    ]
-  }
-  spreadsheets_meta.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=update_body).execute()
-
-
-def main():
+def get_spreadsheet_resource():
   """Shows basic usage of the Sheets API.
-  Prints values from a sample spreadsheet.
-  """
+    Prints values from a sample spreadsheet.
+    """
   creds = None
   # The file token.pickle stores the user's access and refresh tokens, and is
   # created automatically when the authorization flow completes for the first
@@ -79,17 +46,52 @@ def main():
   service = build('sheets', 'v4', credentials=credentials)
 
   # Call the Sheets API
-  spreadsheets_meta = service.spreadsheets()
+  return service.spreadsheets()
 
-  sheet_titles = get_sheet_titles(spreadsheets_meta)
+def get_sheet_titles(spreadsheet_resource):
+  spreadsheet_meta = spreadsheet_resource.get(spreadsheetId=SPREADSHEET_ID).execute()
+  sheets_seq = seq(spreadsheet_meta['sheets'])
+  return sheets_seq.map(lambda d: d['properties']['title']).to_list()
+
+
+def read_queries(spreadsheets_resource):
+  result = spreadsheets_resource.values().get(spreadsheetId=SPREADSHEET_ID,
+                                              range=QUERY_RANGE_NAME).execute()
+  values = result.get('values', [])
+
+  if values is None:
+    return []
+
+  return seq(values).flat_map(lambda x: x).to_list()
+
+
+def add_sheet(spreadsheets_resource, sheet_name):
+  update_body = {
+    'requests': [
+      {
+        'addSheet': {
+          'properties': {
+            'title': sheet_name
+          }
+        }
+      }
+    ]
+  }
+  spreadsheets_resource.batchUpdate(spreadsheetId=SPREADSHEET_ID, body=update_body).execute()
+
+
+def main():
+  spreadsheets_resource = get_spreadsheet_resource()
+
+  sheet_titles = get_sheet_titles(spreadsheets_resource)
   print(sheet_titles)
 
-  queries = read_queries(spreadsheets_meta)
+  queries = read_queries(spreadsheets_resource)
   print(queries)
 
-  add_sheet(spreadsheets_meta, 'dfg')
+  # add_sheet(spreadsheets_resource, 'dfg')
 
-  # result = spreadsheets_meta.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+  # result = spreadsheets_resource.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
   #                             range=SAMPLE_RANGE_NAME).execute()
   # values = result.get('values', [])
   #
