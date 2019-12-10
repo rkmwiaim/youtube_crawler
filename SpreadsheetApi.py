@@ -16,6 +16,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SPREADSHEET_ID = '1-emqPYfy4mQV0Tuc7T_EvcVOUdmmWm83owMnNXg4xUY'
 QUERY_RANGE_NAME = 'query!A:A'
 
+
 def get_spreadsheet_resource():
   """Shows basic usage of the Sheets API.
     Prints values from a sample spreadsheet.
@@ -48,6 +49,7 @@ def get_spreadsheet_resource():
   # Call the Sheets API
   return service.spreadsheets()
 
+
 def get_sheet_titles(spreadsheet_resource):
   spreadsheet_meta = spreadsheet_resource.get(spreadsheetId=SPREADSHEET_ID).execute()
   sheets_seq = seq(spreadsheet_meta['sheets'])
@@ -77,31 +79,49 @@ def add_sheet(spreadsheets_resource, sheet_name):
       }
     ]
   }
-  spreadsheets_resource.batchUpdate(spreadsheetId=SPREADSHEET_ID, body=update_body).execute()
+  return spreadsheets_resource.batchUpdate(spreadsheetId=SPREADSHEET_ID, body=update_body).execute()
+
+
+def batch_append(spreadsheets_resource, sheet_id, data):
+  rows = []
+
+  for row in data:
+    rows.append(
+      {
+        'values':
+          [
+            {'userEnteredValue': {'stringValue': c}} for c in row
+          ]
+      }
+    )
+
+  body = {
+    'requests': [
+      {
+        'appendCells':
+          {
+            "sheetId": sheet_id,
+            "rows": rows,
+            "fields": '*'
+          }
+      }
+    ]
+  }
+  return spreadsheets_resource.batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body).execute()
+
 
 
 def main():
   spreadsheets_resource = get_spreadsheet_resource()
 
-  sheet_titles = get_sheet_titles(spreadsheets_resource)
-  print(sheet_titles)
-
-  queries = read_queries(spreadsheets_resource)
-  print(queries)
-
-  # add_sheet(spreadsheets_resource, 'dfg')
-
-  # result = spreadsheets_resource.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-  #                             range=SAMPLE_RANGE_NAME).execute()
-  # values = result.get('values', [])
-  #
-  # if not values:
-  #     print('No data found.')
-  # else:
-  #     print('Name, Major:')
-  #     for row in values:
-  #         # Print columns A and E, which correspond to indices 0 and 4.
-  #         print(row)
+  test_data = [
+    ['yjcPdcUxyh8', '보겸 장삐쭈 양팡 워크맨 ㅂㅇㄹ', '2019-12-10T11:11:03.000Z'],
+    [
+      'ZtU-z5-dzOY', '워크맨 장성규보다 더 빡쎈 고냥이의 일일 인턴 체험기! 직장상사에게 예쁨받는 노하우 고냥이가 직접 알려줌 ㅣ춤추는고냥 EP.15ㅣ',
+      '2019-12-10T09:00:08.000Z'],
+    ['yWbNj-tcWgI', '[2019 학술제] 인제대학교 신문방송학과 워크맨', '2019-12-09T20:17:25.000Z']
+  ]
+  batch_append(spreadsheets_resource, 1138121828, test_data)
 
 
 if __name__ == '__main__':

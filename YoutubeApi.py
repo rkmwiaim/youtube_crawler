@@ -14,7 +14,7 @@ print('------------------------------------------------------------------------'
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
-def youtube_search(query):
+def youtube_search_generator(query):
   youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
     developerKey=DEVELOPER_KEY)
 
@@ -32,24 +32,25 @@ def youtube_search(query):
       order='date'
     ).execute()
 
-    videos = []
-
     page_token = search_response.get('nextPageToken')
     print('page token: ', page_token)
 
-    # Add each result to the appropriate list, and then display the lists of
-    # matching videos, channels, and playlists.
+    videos = []
+
     for search_result in search_response.get("items", []):
       if search_result["id"]["kind"] == "youtube#video":
         video_id = search_result["id"]["videoId"]
-        video = "{0}\t{1}\t{2}".format(search_result["snippet"]["publishedAt"], search_result["snippet"]["title"],
-                                       video_id)
 
-        if video_id in ids:
-          print('duplicate id:', video_id)
+        if video_id not in ids:
+          ids.add(video_id)
 
-        ids.add(video_id)
-        print(video)
+          title = search_result["snippet"]["title"]
+          published_at = search_result["snippet"]["publishedAt"]
+
+          video = [video_id, title, published_at]
+          videos.append(video)
+
+    yield videos
 
     if page_token is None:
       break
@@ -58,7 +59,10 @@ def youtube_search(query):
 
   # print("Videos:\n", "\n".join(videos), "\n")
 
-  print('# ids: ', len(ids))
+  print('number of crawled videos: ', len(ids))
 
 if __name__ == "__main__":
-  youtube_search("장씨세가 호위무사")
+  gen = youtube_search_generator("워크맨")
+  for videos in gen:
+    for v in videos:
+      print(v)
