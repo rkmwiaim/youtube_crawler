@@ -110,9 +110,73 @@ def batch_append(spreadsheets_resource, sheet_id, data):
   return spreadsheets_resource.batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body).execute()
 
 
+def add_header(spreadsheets_resource, sheet_id, header):
+  return batch_append(spreadsheets_resource, sheet_id, [header])
+
+
+def insert_empty_rows_at_head(spreadsheets_resource, sheet_id, num_rows):
+  body = {
+    'requests': [
+      {
+        'insertDimension': {
+          'range': {
+            'sheet_id': sheet_id,
+            'dimension': 'ROWS',
+            'startIndex': 1,
+            'endIndex': 1 + num_rows
+          }
+        }
+      }
+    ]
+  }
+
+  return spreadsheets_resource.batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body).execute()
+
+
+def update_data_at_head(spreadsheets_resource, sheet_id, data):
+  rows = []
+
+  for row in data:
+    rows.append(
+      {
+        'values':
+          [
+            {'userEnteredValue': {'stringValue': c}} for c in row
+          ]
+      }
+    )
+
+  body = {
+    'requests': [
+      {
+        'updateCells':
+          {
+            "rows": rows,
+            "fields": '*',
+            "range": {
+              "sheetId": sheet_id,
+              "startRowIndex": 1,
+              "endRowIndex": 1 + len(data),
+              "startColumnIndex": 0,
+              "endColumnIndex": len(data[0])
+            }
+          }
+      }
+    ]
+  }
+
+  return spreadsheets_resource.batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body).execute()
+
+
+def insert_data_at_head(spreadsheets_resource, sheet_id, data):
+  insert_empty_rows_at_head(spreadsheets_resource, sheet_id, len(data))
+  return update_data_at_head(spreadsheets_resource, sheet_id, data)
 
 def main():
   spreadsheets_resource = get_spreadsheet_resource()
+  sheet_id = 767482044
+
+  # insert_empty_rows_at_head(spreadsheets_resource, sheet_id, 1)
 
   test_data = [
     ['yjcPdcUxyh8', '보겸 장삐쭈 양팡 워크맨 ㅂㅇㄹ', '2019-12-10T11:11:03.000Z'],
@@ -121,8 +185,9 @@ def main():
       '2019-12-10T09:00:08.000Z'],
     ['yWbNj-tcWgI', '[2019 학술제] 인제대학교 신문방송학과 워크맨', '2019-12-09T20:17:25.000Z']
   ]
-  batch_append(spreadsheets_resource, 1138121828, test_data)
+  # batch_append(spreadsheets_resource, sheet_id, test_data)
 
+  insert_data_at_head(spreadsheets_resource, sheet_id, test_data)
 
 if __name__ == '__main__':
   main()

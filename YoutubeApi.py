@@ -52,10 +52,8 @@ def youtube_search_generator(query):
 
     yield videos
 
-    if page_token is None:
+    if page_token is None or len(videos) == 0:
       break
-
-    print('------------------------------------------------------------------------')
 
   # print("Videos:\n", "\n".join(videos), "\n")
 
