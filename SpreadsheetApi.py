@@ -81,6 +81,16 @@ def add_sheet(spreadsheets_resource, sheet_name):
   }
   return spreadsheets_resource.batchUpdate(spreadsheetId=SPREADSHEET_ID, body=update_body).execute()
 
+def get_sheet_id_from_res(add_sheet_res):
+  return add_sheet_res['replies'][0]['addSheet']['properties']['sheetId']
+
+def add_sheet_with_video_header(spreadsheets_resource, sheet_name):
+  add_sheet_res = add_sheet(spreadsheets_resource, sheet_name)
+  sheet_id = get_sheet_id_from_res(add_sheet_res)
+  add_video_header(spreadsheets_resource, sheet_id)
+
+  return add_sheet_res
+
 
 def batch_append(spreadsheets_resource, sheet_id, data):
   rows = []
@@ -113,6 +123,9 @@ def batch_append(spreadsheets_resource, sheet_id, data):
 def add_header(spreadsheets_resource, sheet_id, header):
   return batch_append(spreadsheets_resource, sheet_id, [header])
 
+def add_video_header(spreadsheets_resource, sheet_id):
+  header = ['video id', 'title', 'published at']
+  return add_header(spreadsheets_resource, sheet_id, header)
 
 def insert_empty_rows_at_head(spreadsheets_resource, sheet_id, num_rows):
   body = {
@@ -171,6 +184,7 @@ def update_data_at_head(spreadsheets_resource, sheet_id, data):
 def insert_data_at_head(spreadsheets_resource, sheet_id, data):
   insert_empty_rows_at_head(spreadsheets_resource, sheet_id, len(data))
   return update_data_at_head(spreadsheets_resource, sheet_id, data)
+
 
 def main():
   spreadsheets_resource = get_spreadsheet_resource()

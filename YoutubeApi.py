@@ -14,7 +14,7 @@ print('------------------------------------------------------------------------'
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
-def dump_all_generator(query):
+def video_generator(query, max_results=50, start_time=None):
   youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
     developerKey=DEVELOPER_KEY)
 
@@ -27,53 +27,7 @@ def dump_all_generator(query):
     search_response = search.list(
       q=query,
       part="id,snippet",
-      maxResults=50,
-      pageToken=page_token,
-      order='date'
-    ).execute()
-
-    page_token = search_response.get('nextPageToken')
-    print('page token: ', page_token)
-
-    videos = []
-
-    for search_result in search_response.get("items", []):
-      if search_result["id"]["kind"] == "youtube#video":
-        video_id = search_result["id"]["videoId"]
-
-        if video_id not in ids:
-          ids.add(video_id)
-
-          title = search_result["snippet"]["title"]
-          published_at = search_result["snippet"]["publishedAt"]
-
-          video = [video_id, title, published_at]
-          videos.append(video)
-
-    yield videos
-
-    if page_token is None or len(videos) == 0:
-      break
-
-  # print("Videos:\n", "\n".join(videos), "\n")
-
-  print('number of crawled videos: ', len(ids))
-
-
-def crawl_after(query, start_time):
-  youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
-                  developerKey=DEVELOPER_KEY)
-
-  search = youtube.search()
-  page_token = None
-
-  ids = set()
-
-  while True:
-    search_response = search.list(
-      q=query,
-      part="id,snippet",
-      maxResults=50,
+      maxResults=max_results,
       pageToken=page_token,
       publishedAfter=start_time,
       order='date'
@@ -102,14 +56,11 @@ def crawl_after(query, start_time):
     if page_token is None or len(videos) == 0:
       break
 
-  # print("Videos:\n", "\n".join(videos), "\n")
-
   print('number of crawled videos: ', len(ids))
 
 
-
 if __name__ == "__main__":
-  gen = crawl_after("워크맨", '2019-12-14T01:14:02.000Z')
+  gen = video_generator("워크맨")
   for videos in gen:
     for v in videos:
       print(v)
