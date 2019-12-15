@@ -25,7 +25,7 @@ def main():
 
       added_sheet_id = add_sheet_res['replies'][0]['addSheet']['properties']['sheetId']
 
-      gen = YoutubeApi.youtube_search_generator(query)
+      gen = YoutubeApi.dump_all_generator(query)
       for data in gen:
         SpreadsheetApi.batch_append(spreadsheet_resource, added_sheet_id, data)
         print('appended {0} data'.format(len(data)))
