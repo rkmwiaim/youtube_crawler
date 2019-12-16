@@ -54,6 +54,10 @@ class YoutubeSpreadsheet:
     # Call the Sheets API
     return service.spreadsheets()
 
+  def get_sheets(self):
+    spreadsheet_meta = self.spreadsheet_resource.get(spreadsheetId=SPREADSHEET_ID).execute()
+    sheets_seq = seq(spreadsheet_meta['sheets'])
+    return sheets_seq.map(lambda d: d['properties'])
 
   def get_sheet_titles(self):
     spreadsheet_meta = self.spreadsheet_resource.get(spreadsheetId=SPREADSHEET_ID).execute()
@@ -195,8 +199,7 @@ class YoutubeSpreadsheet:
 
 def main():
   youtube_spreadsheet = YoutubeSpreadsheet()
-  result = youtube_spreadsheet.get_last_video_date('워크맨')
-  print(result)
+  titles = youtube_spreadsheet.get_sheet_titles()
 
 if __name__ == '__main__':
   main()

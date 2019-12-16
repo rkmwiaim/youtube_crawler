@@ -60,7 +60,7 @@ def video_generator(query, max_results=50, start_time=None):
 
 
 if __name__ == "__main__":
-  gen = video_generator("워크맨")
+  gen = video_generator("유병언")
   for videos in gen:
     for v in videos:
       print(v)
