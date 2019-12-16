@@ -185,23 +185,14 @@ def insert_data_at_head(spreadsheets_resource, sheet_id, data):
   insert_empty_rows_at_head(spreadsheets_resource, sheet_id, len(data))
   return update_data_at_head(spreadsheets_resource, sheet_id, data)
 
+def get_last_video_date(spreadsheets_resource, sheet_name):
+  return spreadsheets_resource.values().get(spreadsheetId=SPREADSHEET_ID, range=sheet_name + "!C2").execute()['values'][0][0]
+
 
 def main():
   spreadsheets_resource = get_spreadsheet_resource()
-  sheet_id = 767482044
-
-  # insert_empty_rows_at_head(spreadsheets_resource, sheet_id, 1)
-
-  test_data = [
-    ['yjcPdcUxyh8', '보겸 장삐쭈 양팡 워크맨 ㅂㅇㄹ', '2019-12-10T11:11:03.000Z'],
-    [
-      'ZtU-z5-dzOY', '워크맨 장성규보다 더 빡쎈 고냥이의 일일 인턴 체험기! 직장상사에게 예쁨받는 노하우 고냥이가 직접 알려줌 ㅣ춤추는고냥 EP.15ㅣ',
-      '2019-12-10T09:00:08.000Z'],
-    ['yWbNj-tcWgI', '[2019 학술제] 인제대학교 신문방송학과 워크맨', '2019-12-09T20:17:25.000Z']
-  ]
-  # batch_append(spreadsheets_resource, sheet_id, test_data)
-
-  insert_data_at_head(spreadsheets_resource, sheet_id, test_data)
+  result = get_last_video_date(spreadsheets_resource, '워크맨')
+  print(result)
 
 if __name__ == '__main__':
   main()
