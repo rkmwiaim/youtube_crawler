@@ -17,10 +17,10 @@ SPREADSHEET_ID = '1-emqPYfy4mQV0Tuc7T_EvcVOUdmmWm83owMnNXg4xUY'
 QUERY_RANGE = 'query!A:A'
 SERVICE_ACCOUNT_FILE = 'youtube-crawler-spreadsheet.json'
 
+
 class YoutubeSpreadsheet:
   def __init__(self, service_account_file=SERVICE_ACCOUNT_FILE):
     self.spreadsheet_resource = self.get_spreadsheet_resource()
-
 
   def get_spreadsheet_resource(self):
     """Shows basic usage of the Sheets API.
@@ -41,7 +41,6 @@ class YoutubeSpreadsheet:
         # flow = InstalledAppFlow.from_client_secrets_file(
         #     'youtube-crawler-spreadsheet.json', SCOPES)
         # creds = flow.run_local_server(port=0)
-
 
         credentials = service_account.Credentials.from_service_account_file(
           SERVICE_ACCOUNT_FILE, scopes=SCOPES)
@@ -64,17 +63,15 @@ class YoutubeSpreadsheet:
     sheets_seq = seq(spreadsheet_meta['sheets'])
     return sheets_seq.map(lambda d: d['properties']['title']).to_list()
 
-
   def read_queries(self):
     result = self.spreadsheet_resource.values().get(spreadsheetId=SPREADSHEET_ID,
-                                                range=QUERY_RANGE).execute()
+                                                    range=QUERY_RANGE).execute()
     values = result.get('values', [])
 
     if values is None:
       return []
 
     return seq(values).flat_map(lambda x: x).to_list()
-
 
   def add_sheet(self, sheet_name):
     update_body = {
@@ -99,7 +96,6 @@ class YoutubeSpreadsheet:
     self.add_video_header(sheet_id)
 
     return add_sheet_res
-
 
   def batch_append(self, sheet_id, data):
     rows = []
@@ -153,7 +149,6 @@ class YoutubeSpreadsheet:
 
     return self.spreadsheet_resource.batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body).execute()
 
-
   def update_data_at_head(self, sheet_id, data):
     rows = []
 
@@ -188,18 +183,21 @@ class YoutubeSpreadsheet:
 
     return self.spreadsheet_resource.batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body).execute()
 
-
   def insert_data_at_head(self, sheet_id, data):
-    self.insert_empty_rows_at_head(sheet_id, len(data))
-    return self.update_data_at_head(sheet_id, data)
+    if len(data) > 0:
+      self.insert_empty_rows_at_head(sheet_id, len(data))
+      return self.update_data_at_head(sheet_id, data)
 
   def get_last_video_date(self, sheet_name):
-    return self.spreadsheet_resource.values().get(spreadsheetId=SPREADSHEET_ID, range=sheet_name + "!C2").execute()['values'][0][0]
+    return \
+    self.spreadsheet_resource.values().get(spreadsheetId=SPREADSHEET_ID, range=sheet_name + "!C2").execute()['values'][
+      0][0]
 
 
 def main():
   youtube_spreadsheet = YoutubeSpreadsheet()
   titles = youtube_spreadsheet.get_sheet_titles()
+
 
 if __name__ == '__main__':
   main()
