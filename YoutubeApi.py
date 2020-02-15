@@ -14,9 +14,10 @@ print('------------------------------------------------------------------------'
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
+
 def video_generator(query, max_results=50, start_time=None):
   youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
-    developerKey=DEVELOPER_KEY)
+                  developerKey=DEVELOPER_KEY)
 
   search = youtube.search()
   page_token = None

@@ -4,6 +4,9 @@ from dateutil.parser import parse as parse_date
 from dateutil.relativedelta import relativedelta
 from functional import seq
 
+import TelegramBot
+
+
 def get_queries(spreadsheet_resource):
   return SpreadsheetApi.read_queries(spreadsheet_resource)
 
@@ -39,6 +42,9 @@ def main():
         pass
 
       youtube_spreadsheet.insert_data_at_head(sheet_id, videos)
+      if len(videos) > 0:
+        msg = "crawled {} new videos for query: {}".format(len(videos), query)
+        TelegramBot.send_message(TelegramBot.youtube_chat_id, msg)
 
     else:
       print('add sheet. title: ', query)
@@ -46,27 +52,25 @@ def main():
       added_sheet_id = youtube_spreadsheet.get_sheet_id_from_res(add_sheet_res)
 
       gen = YoutubeApi.video_generator(query)
+      count = 0
       for data in gen:
+        count += len(data)
         youtube_spreadsheet.batch_append(added_sheet_id, data)
+
         print('appended {0} data'.format(len(data)))
+
+      if count > 0:
+        msg = "crawled {} new videos for query: {}".format(len(count), query)
+        TelegramBot.send_message(TelegramBot.youtube_chat_id, msg)
 
 
 def add_second(t):
   added = parse_date(t) + relativedelta(seconds=1)
   return added.isoformat()
 
+
 def test():
-  youtube_spreadsheet = SpreadsheetApi.YoutubeSpreadsheet()
-  last_video_date = youtube_spreadsheet.get_last_video_date('워크맨')
-
-  gen = YoutubeApi.video_generator('워크맨', 3, add_second(last_video_date))
-  videos = []
-  for vs in gen:
-    for v in vs:
-      videos.append(v)
-
-  for i in videos:
-    print(i)
+  print(1)
 
 
 if __name__ == '__main__':
