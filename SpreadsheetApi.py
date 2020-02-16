@@ -9,13 +9,15 @@ from googleapiclient.discovery import build
 
 from functional import seq
 
+import Properties
+
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
 SPREADSHEET_ID = '1-emqPYfy4mQV0Tuc7T_EvcVOUdmmWm83owMnNXg4xUY'
 QUERY_RANGE = 'query!A:A'
-SERVICE_ACCOUNT_FILE = 'youtube-crawler-spreadsheet.json'
+SERVICE_ACCOUNT_FILE = Properties.script_path + '/youtube-crawler-spreadsheet.json'
 
 
 class YoutubeSpreadsheet:

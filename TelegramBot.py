@@ -1,11 +1,13 @@
 import requests
 import os
 
-with open('telegram_bot_key', 'r') as f:
+import Properties
+
+with open(Properties.script_path + '/telegram_bot_key', 'r') as f:
   current_path = os.getcwd()
   bot_key = f.read()
 
-with open('chat_id', 'r') as f:
+with open(Properties.script_path + '/chat_id', 'r') as f:
   youtube_chat_id = f.read()
 
 

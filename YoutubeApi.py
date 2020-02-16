@@ -6,7 +6,9 @@ from apiclient.discovery import build
 # tab of
 #   https://cloud.google.com/console
 # Please ensure that you have enabled the YouTube Data API for your project.
-with open('developer_key', 'r') as f:
+import Properties
+
+with open(Properties.script_path + '/developer_key', 'r') as f:
   DEVELOPER_KEY = f.readline().strip()
 
 print('developer key', DEVELOPER_KEY)
