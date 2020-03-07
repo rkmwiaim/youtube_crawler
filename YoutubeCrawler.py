@@ -25,43 +25,44 @@ def main():
 
   print('queries:,', queries)
 
-  for query in queries:
+  for query_index, query_tuple in enumerate(queries):
+    query = query_tuple[0]
     print('start to crawl query: ', query)
 
     if query in sheets_title_dict:
       sheet_id = sheets_title_dict[query]
-      last_video_date = youtube_spreadsheet.get_last_video_date(query)
-      videos = []
 
-      try:
-        gen = YoutubeApi.video_generator(query, 3, add_second(last_video_date))
-        for vs in gen:
-          for v in vs:
-            videos.append(v)
-      except:
-        pass
+      if len(query_tuple) > 1:
+        last_video_date = query_tuple[1]
+      else:
+        last_video_date = '1970-01-01T00:00:00.000Z'
 
-      youtube_spreadsheet.insert_data_at_head(sheet_id, videos)
-      if len(videos) > 0:
-        msg = "crawled {} new videos for query: {}".format(len(videos), query)
-        TelegramBot.send_message(TelegramBot.youtube_chat_id, msg)
+      gen = YoutubeApi.video_generator(query, 3, add_second(last_video_date))
 
     else:
       print('add sheet. title: ', query)
       add_sheet_res = youtube_spreadsheet.add_sheet_with_video_header(query)
-      added_sheet_id = youtube_spreadsheet.get_sheet_id_from_res(add_sheet_res)
-
+      sheet_id = youtube_spreadsheet.get_sheet_id_from_res(add_sheet_res)
       gen = YoutubeApi.video_generator(query)
-      count = 0
-      for data in gen:
-        count += len(data)
-        youtube_spreadsheet.batch_append(added_sheet_id, data)
 
-        print('appended {0} data'.format(len(data)))
+    videos = seq(gen).flat_map(lambda v: v).to_list()
 
-      if count > 0:
-        msg = "crawled {} new videos for query: {}".format(len(count), query)
-        TelegramBot.send_message(TelegramBot.youtube_chat_id, msg)
+    if len(videos) > 0:
+      videos.sort(key=lambda t: t[2])
+      youtube_spreadsheet.append_data(sheet_id, videos)
+
+      last_video_date = videos[-1][2]
+      youtube_spreadsheet.update_query_last_crawled_date(query_index, last_video_date)
+      msg = get_message(query, videos)
+      TelegramBot.send_message(TelegramBot.youtube_chat_id, msg)
+
+
+def get_message(query, videos):
+  msg = "crawled {} new videos for query: {}\n".format(len(videos), query)
+  msg += seq(videos) \
+    .map(lambda v: 'https://www.youtube.com/watch?v={}\n'.format(v[0])) \
+    .reduce(lambda a, b: a + b)
+  return msg
 
 
 def add_second(t):
@@ -70,7 +71,7 @@ def add_second(t):
 
 
 def test():
-  print(1)
+  print(add_second('1970-01-01T00:00:00.000Z'))
 
 
 if __name__ == '__main__':

@@ -16,7 +16,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
 SPREADSHEET_ID = '1-emqPYfy4mQV0Tuc7T_EvcVOUdmmWm83owMnNXg4xUY'
-QUERY_RANGE = 'query!A:A'
+QUERY_RANGE = 'query!A2:B'
 SERVICE_ACCOUNT_FILE = Properties.script_path + '/youtube-crawler-spreadsheet.json'
 
 
@@ -66,14 +66,10 @@ class YoutubeSpreadsheet:
     return sheets_seq.map(lambda d: d['properties']['title']).to_list()
 
   def read_queries(self):
-    result = self.spreadsheet_resource.values().get(spreadsheetId=SPREADSHEET_ID,
-                                                    range=QUERY_RANGE).execute()
-    values = result.get('values', [])
+    result = self.spreadsheet_resource.values().batchGet(spreadsheetId=SPREADSHEET_ID,
+                                                         ranges=QUERY_RANGE).execute()
 
-    if values is None:
-      return []
-
-    return seq(values).flat_map(lambda x: x).to_list()
+    return result['valueRanges'][0]['values']
 
   def add_sheet(self, sheet_name):
     update_body = {
@@ -100,17 +96,7 @@ class YoutubeSpreadsheet:
     return add_sheet_res
 
   def batch_append(self, sheet_id, data):
-    rows = []
-
-    for row in data:
-      rows.append(
-        {
-          'values':
-            [
-              {'userEnteredValue': {'stringValue': c}} for c in row
-            ]
-        }
-      )
+    rows = self.get_rows(data)
 
     body = {
       'requests': [
@@ -133,27 +119,26 @@ class YoutubeSpreadsheet:
     header = ['video id', 'title', 'published at']
     return self.add_header(sheet_id, header)
 
-  def insert_empty_rows_at_head(self, sheet_id, num_rows):
+  def append_data(self, sheet_id, data):
+    rows = self.get_rows(data)
+
     body = {
       'requests': [
         {
-          'insertDimension': {
-            'range': {
-              'sheet_id': sheet_id,
-              'dimension': 'ROWS',
-              'startIndex': 1,
-              'endIndex': 1 + num_rows
+          'appendCells':
+            {
+              "sheetId": sheet_id,
+              "rows": rows,
+              "fields": '*',
             }
-          }
         }
       ]
     }
 
     return self.spreadsheet_resource.batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body).execute()
 
-  def update_data_at_head(self, sheet_id, data):
+  def get_rows(self, data):
     rows = []
-
     for row in data:
       rows.append(
         {
@@ -163,42 +148,27 @@ class YoutubeSpreadsheet:
             ]
         }
       )
-
-    body = {
-      'requests': [
-        {
-          'updateCells':
-            {
-              "rows": rows,
-              "fields": '*',
-              "range": {
-                "sheetId": sheet_id,
-                "startRowIndex": 1,
-                "endRowIndex": 1 + len(data),
-                "startColumnIndex": 0,
-                "endColumnIndex": len(data[0])
-              }
-            }
-        }
-      ]
-    }
-
-    return self.spreadsheet_resource.batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body).execute()
-
-  def insert_data_at_head(self, sheet_id, data):
-    if len(data) > 0:
-      self.insert_empty_rows_at_head(sheet_id, len(data))
-      return self.update_data_at_head(sheet_id, data)
+    return rows
 
   def get_last_video_date(self, sheet_name):
     return \
-    self.spreadsheet_resource.values().get(spreadsheetId=SPREADSHEET_ID, range=sheet_name + "!C2").execute()['values'][
-      0][0]
+      self.spreadsheet_resource.values().get(spreadsheetId=SPREADSHEET_ID, range=sheet_name + "!C2").execute()[
+        'values'][
+        0][0]
+
+  def update_query_last_crawled_date(self, query_index, last_crawled_date):
+    range = 'query!B{}'.format(query_index + 2)
+    body = {
+      'values': [[last_crawled_date]]
+    }
+    return self.spreadsheet_resource.values().update(spreadsheetId=SPREADSHEET_ID, range=range, valueInputOption='RAW',
+                                                     body=body).execute()
 
 
 def main():
   youtube_spreadsheet = YoutubeSpreadsheet()
-  titles = youtube_spreadsheet.get_sheet_titles()
+  r = youtube_spreadsheet.update_query_last_crawled_date(3, '1970-01-01T00:00:00.000Z')
+  print(r)
 
 
 if __name__ == '__main__':
