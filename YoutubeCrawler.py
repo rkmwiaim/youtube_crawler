@@ -49,9 +49,11 @@ def main():
 
     if len(videos) > 0:
       videos.sort(key=lambda t: t[2])
-      youtube_spreadsheet.append_data(sheet_id, videos)
-
       last_video_date = videos[-1][2]
+
+      transformed = seq(videos).map(transform_video).to_list()
+      youtube_spreadsheet.append_data(sheet_id, transformed)
+
       youtube_spreadsheet.update_query_last_crawled_date(query_index, last_video_date)
       msg = get_message(query, videos)
       TelegramBot.send_message(TelegramBot.youtube_chat_id, msg)
@@ -60,7 +62,7 @@ def main():
 def get_message(query, videos):
   msg = "crawled {} new videos for query: {}\n".format(len(videos), query)
   msg += seq(videos) \
-    .map(lambda v: 'https://www.youtube.com/watch?v={}\n'.format(v[0])) \
+    .map(lambda v: '{}\n'.format(add_youtube_url_prefix(v[0]))) \
     .reduce(lambda a, b: a + b)
   return msg
 
@@ -70,8 +72,19 @@ def add_second(t):
   return added.isoformat()
 
 
-def test():
-  print(add_second('1970-01-01T00:00:00.000Z'))
+def change_date_format(t):
+  return parse_date(t).strftime('%Y-%m-%d %H:%M:%S')
+
+
+def add_youtube_url_prefix(video_id):
+  return 'https://youtu.be/' + video_id
+
+
+def transform_video(video):
+  video[2] = change_date_format(video[2])
+  video[0] = add_youtube_url_prefix(video[0])
+
+  return video
 
 
 if __name__ == '__main__':

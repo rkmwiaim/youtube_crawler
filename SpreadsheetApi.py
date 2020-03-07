@@ -116,7 +116,7 @@ class YoutubeSpreadsheet:
     return self.batch_append(sheet_id, [header])
 
   def add_video_header(self, sheet_id):
-    header = ['video id', 'title', 'published at']
+    header = ['url', 'title', 'published at']
     return self.add_header(sheet_id, header)
 
   def append_data(self, sheet_id, data):
