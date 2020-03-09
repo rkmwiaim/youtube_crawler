@@ -62,7 +62,7 @@ def main():
 def get_message(query, videos):
   msg = "crawled {} new videos for query: {}\n".format(len(videos), query)
   msg += seq(videos) \
-    .map(lambda v: '{}\n'.format(add_youtube_url_prefix(v[0]))) \
+    .map(lambda v: '{}\n'.format(v[0])) \
     .reduce(lambda a, b: a + b)
   return msg
 
