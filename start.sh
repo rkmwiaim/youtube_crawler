@@ -1,2 +1,3 @@
-. /home/archive/youtube_crawler/venv/bin/activate
-python /home/archive/youtube_crawler/YoutubeCrawler.py
+BASE_DIR=/home/archive/working/kmryu
+. $BASE_DIR/youtube_crawler/venv/bin/activate
+python $BASE_DIR/youtube_crawler/YoutubeCrawler.py
