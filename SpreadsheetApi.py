@@ -8,8 +8,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 from functional import seq
-
-import Properties
+import definitions
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -17,7 +16,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 # The ID and range of a sample spreadsheet.
 SPREADSHEET_ID = '1-emqPYfy4mQV0Tuc7T_EvcVOUdmmWm83owMnNXg4xUY'
 QUERY_RANGE = 'query!A2:B'
-SERVICE_ACCOUNT_FILE = Properties.script_path + '/youtube-crawler-spreadsheet.json'
+SERVICE_ACCOUNT_FILE = os.path.join(definitions.RESOURCE_DIR, 'youtube-crawler-spreadsheet.json')
 
 
 class YoutubeSpreadsheet:
@@ -167,8 +166,7 @@ class YoutubeSpreadsheet:
 
 def main():
   youtube_spreadsheet = YoutubeSpreadsheet()
-  r = youtube_spreadsheet.update_query_last_crawled_date(3, '1970-01-01T00:00:00.000Z')
-  print(r)
+  print(youtube_spreadsheet.get_sheets())
 
 
 if __name__ == '__main__':

@@ -56,7 +56,7 @@ def main():
 
       youtube_spreadsheet.update_query_last_crawled_date(query_index, last_video_date)
       msg = get_message(query, videos)
-      TelegramBot.send_message(TelegramBot.youtube_chat_id, msg)
+      TelegramBot.send_message(TelegramBot.telegram_ids['alarm'], msg)
 
 
 def get_message(query, videos):

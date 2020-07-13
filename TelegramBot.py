@@ -1,23 +1,27 @@
 import requests
+import yaml
 import os
+import definitions
 
-import Properties
-
-with open(Properties.script_path + '/telegram_bot_key', 'r') as f:
-  current_path = os.getcwd()
-  bot_key = f.read()
-
-with open(Properties.script_path + '/chat_id', 'r') as f:
-  youtube_chat_id = f.read()
+with open(os.path.join(definitions.RESOURCE_DIR, 'telegram_conf.yaml')) as f:
+  TELEGRAM_CONF = yaml.load(f, Loader=yaml.FullLoader)
+  BOT_KEY = TELEGRAM_CONF['bot_key']
+  telegram_ids = TELEGRAM_CONF['ids']
 
 
 def get_updates():
-  return requests.get('https://api.telegram.org/bot{}/getUpdates'.format(bot_key)).text
+  return requests.get('https://api.telegram.org/bot{}/getUpdates'.format(BOT_KEY)).text
 
 
 def send_message(chat_id, msg):
-  requests.get('https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}'.format(bot_key, chat_id, msg))
+  data = {
+    'chat_id': chat_id,
+    'text': msg
+  }
+  return requests.post('https://api.telegram.org/bot{}/sendMessage'.format(BOT_KEY), data=data)
 
 
 if __name__ == '__main__':
-  send_message(youtube_chat_id, 'this message is from program')
+  res = send_message(telegram_ids['alarm'], 'this message is from bot')
+  print(res)
+  print(res.text)
